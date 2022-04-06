@@ -46,83 +46,94 @@ import com.portfolio.portfoliomvc.relations.service.IPhotoPostService;
 @Controller
 @RequestMapping("/photo")
 public class PhotoController {
-	
+
 	private static Logger log = LoggerFactory.getLogger(PhotoController.class);
-	
+
 	@Autowired
 	private IPhotoService photoService;
-	
+
 	@Autowired
 	private IPostService postService;
-	
+
 	@Autowired
 	private IPhotoPostService photoPostService;
-	
-	//==================================================
-	
+
+	// ==================================================
+	// =================== GET IMAGE ====================
+	// ==================================================
+
 	@GetMapping("/{nombreFoto:.+}")
-    public ResponseEntity<Resource> getImage(@PathVariable String nombreFoto) {
-		Path rutaArchivo = Paths.get("src").resolve(nombreFoto).toAbsolutePath();
+	public ResponseEntity<Resource> getImage(@PathVariable String nombreFoto) {
+		Path rutaArchivo = Paths.get("src/upload").resolve(nombreFoto).toAbsolutePath();
 		Resource archivo = null;
-		
+
 		try {
 			archivo = new UrlResource(rutaArchivo.toUri());
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		HttpHeaders cabecera = new HttpHeaders();
 		cabecera.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + archivo.getFilename() + "\"");
-		
-		return new ResponseEntity<Resource>(archivo,cabecera, HttpStatus.OK);
-    }
-	
-	//==================================================
-	
+
+		return new ResponseEntity<Resource>(archivo, cabecera, HttpStatus.OK);
+	}
+
+	// ==================================================
+	// ================== POST IMAGE ====================
+	// ==================================================
+
 	@PostMapping("/upload")
-	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long id) {
-		Map<String,Object> response = new HashMap<>();		
-		Post posteo = this.postService.getPostById(id).get();
+	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long idPost) {
+		Map<String, Object> response = new HashMap<>();
+		Post posteo = this.postService.getPostById(idPost).get();
 		
-		if(!file.isEmpty()) {
+		// (1) STEP ONE: retrive the resource from the request(MultipartFile).
+		if (!file.isEmpty()) {
+			
 			String fileName = file.getOriginalFilename();
-			Path filePath = Paths.get("src").resolve(fileName).toAbsolutePath();
-		//	Path filePath = Paths.get("C:\\Users\\lucas\\Desktop\\portfolio-v2.0 (workspace)\\portfolio-mvc\\src\\upload\\").resolve(fileName).toAbsolutePath();
+			Path filePath = Paths.get("src/upload").resolve(fileName).toAbsolutePath(); //Donde lo va a almacenar.
+
+			// (2) STEP TWO: save the resource to the path specified.
+			saveFile(file, filePath); //Guarda el 'file' en el 'filePath' especificado.
 			
-			System.out.println("archivo:" + fileName);
-			System.out.println("ruta:" + filePath);
-		
-			try {
-				Files.copy(file.getInputStream(), filePath);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			//-----------------------------------
-			Photo savePhoto = new Photo();
-			savePhoto.setPath(fileName);
-			Photo savedPhoto = photoService.saveImage(savePhoto);
+			// -----------------------------------
+			// (3) STEP THREE: Crea el registro 'Photo' con la URL donde esta guardado.
+			Photo savedPhoto = savePhoto(fileName);
+			// -----------------------------------
 			
-			System.out.println("FOTO GUARDADA, ID:" + savedPhoto.getId());
+			// (4) STEP FOUR: Crea el registro 'Post' con
+			savePhotoOfPost(idPost, savedPhoto.getId());
 			
-			// Ahora tengo que editar la tabla 'post.photo_id' para que el post referenie a la foto.
-			
-			PhotoOfPost saveEntity = new PhotoOfPost();
-			saveEntity.setPostId(id);
-			saveEntity.setPhotoId(savedPhoto.getId());
-			
-			photoPostService.guardar(saveEntity);
-			
-			
-			
-/*			posteo.setPhoto(photos);
-			
-			postService.putPost(posteo);
-			response.put("cliente", posteo);
-			response.put("mensaje", "Foto subida con exito: " + fileName); */
-			
+			// -----------------------------------
+
 		}
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	}
+	
+	private void saveFile(MultipartFile file, Path filePath) {
+		try {
+			Files.copy(file.getInputStream(), filePath);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	//------------------------------------------------------------------------------------------------------
+	
+	private Photo savePhoto(String fileName) {
+		Photo savePhoto = new Photo();
+		savePhoto.setNameResource(fileName);
+		Photo savedPhoto = photoService.saveImage(savePhoto);
+		return savedPhoto;
+	}
+	
+	private PhotoOfPost savePhotoOfPost(Long idPost, Long idPhoto) {
+		PhotoOfPost saveEntity = new PhotoOfPost();
+		saveEntity.setPostId(idPost);
+		saveEntity.setPhotoId(idPhoto);
+		return photoPostService.guardar(saveEntity);
 	}
 }

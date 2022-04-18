@@ -6,8 +6,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "post_photo")
-public class PhotoOfPost {
+@Table(name = "samplePhoto")
+public class SamplePhoto {
 	
 	@Id
 	@Column(name = "post_id")

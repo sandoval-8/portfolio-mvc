@@ -19,39 +19,29 @@ import com.portfolio.portfoliomvc.photo.entity.Photo;
 
 @Entity
 public class Post {
-	
+
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
-	
+
 	private String title;
-	
+
 	private String presentation;
-	
+
 	private String description;
-	
-	@OneToOne
-	private Photo photo;
-	
-//	@Column
-//	@ElementCollection(targetClass=Photo.class)
-//	private List<Photo> photo = new ArrayList<>(); 
-	
-//	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//	@JoinColumn(name = "post_id")
-//	private List<Photo> photo = new ArrayList<Photo>();
-	
-	//En JSON -> "visible"
+
+	// En JSON -> "visible"
 	private boolean isVisible;
-	
-	//En JSON -> "enabled"
+
+	// En JSON -> "enabled"
 	private boolean isEnabled;
-	
-	
-	/*=====================================
-	 *========= SETTER and GETTER =========
-	 *=====================================
-	 */
+
+	@OneToOne
+	private Photo samplePhoto;
+
+	@OneToMany
+	@Column(name = "book_photo")
+	private List<Photo> bookPhotos = new ArrayList<>();
 
 	public Long getId() {
 		return id;
@@ -85,13 +75,12 @@ public class Post {
 		this.description = description;
 	}
 
-
-	public Photo getPhoto() {
-		return photo;
+	public Photo getSamplePhoto() {
+		return samplePhoto;
 	}
 
-	public void setPhoto(Photo photo) {
-		this.photo = photo;
+	public void setSamplePhoto(Photo samplePhoto) {
+		this.samplePhoto = samplePhoto;
 	}
 
 	public boolean isVisible() {
@@ -109,6 +98,13 @@ public class Post {
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}
-	
-	
+
+	public List<Photo> getBookPhotos() {
+		return bookPhotos;
+	}
+
+	public void setBookPhotos(List<Photo> bookPhotos) {
+		this.bookPhotos = bookPhotos;
+	}
+
 }

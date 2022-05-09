@@ -16,6 +16,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import com.portfolio.portfoliomvc.photo.entity.Photo;
+import com.portfolio.portfoliomvc.profile.entity.SamplePhoto;
 
 @Entity
 public class Post {
@@ -36,11 +37,10 @@ public class Post {
 	// En JSON -> "enabled"
 	private boolean isEnabled;
 
-	@OneToOne
-	private Photo samplePhoto;
+//	@OneToOne(fetch=FetchType.LAZY)
+//	private Photo samplePhoto;
 
-	@OneToMany
-	@Column(name = "book_photo")
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "post")
 	private List<Photo> bookPhotos = new ArrayList<>();
 
 	public Long getId() {
@@ -75,14 +75,6 @@ public class Post {
 		this.description = description;
 	}
 
-	public Photo getSamplePhoto() {
-		return samplePhoto;
-	}
-
-	public void setSamplePhoto(Photo samplePhoto) {
-		this.samplePhoto = samplePhoto;
-	}
-
 	public boolean isVisible() {
 		return isVisible;
 	}
@@ -90,6 +82,8 @@ public class Post {
 	public void setVisible(boolean isVisible) {
 		this.isVisible = isVisible;
 	}
+
+
 
 	public boolean isEnabled() {
 		return isEnabled;
@@ -99,12 +93,12 @@ public class Post {
 		this.isEnabled = isEnabled;
 	}
 
-	public List<Photo> getBookPhotos() {
+/*	public List<Photo> getBookPhotos() {
 		return bookPhotos;
 	}
 
 	public void setBookPhotos(List<Photo> bookPhotos) {
 		this.bookPhotos = bookPhotos;
-	}
+	} */
 
 }

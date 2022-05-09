@@ -6,6 +6,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
@@ -22,8 +23,16 @@ public class Photo {
 
 	@Column(name = "name_resource")
 	private String nameResource;
-
 	
+	@Column(name = "is_profile")
+	private boolean isProfile;
+	
+	@ManyToOne
+	/* aprender a usar el @JoinColumn y @JoinColumns */
+	private Post post;
+	
+	/* Podemos agregar mas informacion util para la vista, como una descripción
+	 * de la foto, fecha, etc */
 
 	public Long getId() {
 		return id;
@@ -47,6 +56,22 @@ public class Photo {
 
 	public void setNameResource(String nameResource) {
 		this.nameResource = nameResource;
+	}
+
+	public boolean isProfile() {
+		return isProfile;
+	}
+
+	public void setProfile(boolean isProfile) {
+		this.isProfile = isProfile;
+	}
+
+	public Post getPost() {
+		return post;
+	}
+
+	public void setPost(Post post) {
+		this.post = post;
 	}
 
 }

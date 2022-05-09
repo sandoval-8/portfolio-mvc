@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.portfolio.portfoliomvc.photo.entity.Photo;
+import com.portfolio.portfoliomvc.post.entity.Post;
 
 @Repository
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
@@ -16,5 +17,7 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
 	public List<Photo> searchByPost(Long postId);
 	
 	public Optional<Photo> findById(Long photoId);
+	
+	public List<Photo> findByPost(Post post);
 
 }

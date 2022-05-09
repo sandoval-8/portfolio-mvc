@@ -6,10 +6,13 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.portfolio.portfoliomvc.photo.entity.Photo;
+import com.portfolio.portfoliomvc.post.entity.Post;
 
 public interface IPhotoService {
 	
 	public abstract Photo getImage(Long imageId);
+	
+	public abstract List<Photo> findByForPost(Post post);
 	
 	public abstract List<Photo> getAllImages(Long postId);
 	

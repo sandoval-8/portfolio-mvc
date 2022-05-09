@@ -5,7 +5,9 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,6 +22,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,12 +35,12 @@ import com.portfolio.portfoliomvc.photo.entity.Photo;
 import com.portfolio.portfoliomvc.photo.service.IPhotoService;
 import com.portfolio.portfoliomvc.post.entity.Post;
 import com.portfolio.portfoliomvc.post.service.IPostService;
-import com.portfolio.portfoliomvc.relations.SamplePhoto;
-import com.portfolio.portfoliomvc.relations.service.IPhotoPostService;
 import com.portfolio.portfoliomvc.util.random.RandomFileName;
 
 @Controller
 @RequestMapping("/photo")
+//@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class PhotoController {
 
 	private static Logger log = LoggerFactory.getLogger(PhotoController.class);
@@ -47,8 +51,7 @@ public class PhotoController {
 	@Autowired
 	private IPostService postService;
 
-	@Autowired
-	private IPhotoPostService photoPostService;
+//	private IPhotoPostService photoPostService;
 	
 	//   src/upload
 	public String volumen = Environment.getProperties().getProperty("portfolio.volumen.url");
@@ -58,6 +61,7 @@ public class PhotoController {
 	// ==================================================
 
 	@GetMapping("/{nombreFoto:.+}")
+	
 	public ResponseEntity<Resource> getImage(@PathVariable String nombreFoto) {
 		log.info("volumen:" + volumen);
 		
@@ -76,12 +80,33 @@ public class PhotoController {
 
 		return new ResponseEntity<Resource>(archivo, cabecera, HttpStatus.OK);
 	}
+	
+	// ==================================================
+	// =============== GET IMAGE FOR POST ===============
+	// ==================================================
+	
+	@GetMapping("/lista/{idPost}")
+//	@CrossOrigin(origins = "http://localhost:4200")
+	public ResponseEntity<List<Photo>> getImagesForPost(@PathVariable("idPost") Long idPost) {
+		Optional<Post> post = this.postService.getPostById(idPost);
+		List<Photo> photos = new ArrayList<>();		
+		if(post.isPresent()) {			
+			photos = this.photoService.findByForPost(post.get());			
+		} else {
+			HttpHeaders header = new HttpHeaders();
+			header.add("not_found", "No existe el post con ese id=" + idPost);
+			return new ResponseEntity<>(header, HttpStatus.NOT_FOUND);
+		}
+		
+		return new ResponseEntity<List<Photo>>(photos, HttpStatus.OK);
+	}
 
 	// ==================================================
 	// ================== POST IMAGE ====================
 	// ==================================================
 
 	@PostMapping("/upload")
+//	@CrossOrigin(origins = "http://localhost:4200")
 	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, 
 							@RequestParam("id") Long idPost, 
 							@RequestParam("isSample") boolean isSample) {
@@ -100,19 +125,19 @@ public class PhotoController {
 				Path filePath = Paths.get(volumen).resolve(fileName).toAbsolutePath();
 				
 				saveFile(file, filePath); //Guarda 'file' en el volumen
-				Photo savedPhoto = savePhoto(fileName); //Persiste en PHOTO
+				Photo savedPhoto = savePhoto(fileName, posteo); //Persiste en PHOTO
 				
 				if(isSample) {//Si es true lo guardamos dentro de POST
 					
-					saveSamplePhoto(idPost, savedPhoto.getId()); //Persiste en SAMPLE_PHOTO
+//					saveSamplePhoto(idPost, savedPhoto.getId()); //Persiste en SAMPLE_PHOTO
 					
 					Post postSaving = post.get();
-					postSaving.setSamplePhoto(savedPhoto);
+//					postSaving.setSamplePhoto(savedPhoto);
 					postService.putPost(postSaving);
 					
 				} else if(!isSample) {
 					//Si es falso lo guardamos en PhotoOfPost
-					
+//					saveSamplePhoto(idPost, savedPhoto.getId()); //Persiste en SAMPLE_PHOTO
 					
 				} else {
 					log.debug("'isSample' is not defined or is null");
@@ -141,19 +166,20 @@ public class PhotoController {
 	}
 	
 	//Persiste en PHOTO
-	private Photo savePhoto(String fileName) {
+	private Photo savePhoto(String fileName, Post post) {
 		Photo savePhoto = new Photo();
 		savePhoto.setNameResource(fileName);
+		savePhoto.setPost(post);
 		Photo savedPhoto = photoService.saveImage(savePhoto);
 		return savedPhoto;
 	}
 	
 	//Persiste en SAMPLE_PHOTO
-	private SamplePhoto saveSamplePhoto(Long idPost, Long idPhoto) {
+/*	private SamplePhoto saveSamplePhoto(Long idPost, Long idPhoto) {
 		SamplePhoto saveEntity = new SamplePhoto();
 		saveEntity.setPostId(idPost);
 		saveEntity.setPhotoId(idPhoto);
 		return photoPostService.guardar(saveEntity);
-	}
+	} */
 	
 }

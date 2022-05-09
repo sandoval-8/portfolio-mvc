@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.portfolio.portfoliomvc.photo.entity.Photo;
 import com.portfolio.portfoliomvc.photo.repository.PhotoRepository;
 import com.portfolio.portfoliomvc.photo.service.IPhotoService;
+import com.portfolio.portfoliomvc.post.entity.Post;
 
 @Service
 public class PhotoServiceImpl implements IPhotoService{
@@ -51,6 +52,12 @@ public class PhotoServiceImpl implements IPhotoService{
 	public Photo editImage(Photo photo) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<Photo> findByForPost(Post post) {
+		// TODO Auto-generated method stub
+		return this.repository.findByPost(post);
 	}
 	
 	
